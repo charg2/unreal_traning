@@ -19,6 +19,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override final;
 
+	void SetControlMode(int32 ControlMode);
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override final;
