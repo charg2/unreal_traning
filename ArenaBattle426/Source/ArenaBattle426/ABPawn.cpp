@@ -36,7 +36,7 @@ AABPawn::AABPawn()
 	}
 
 
-	Mesh->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+	Mesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 	//UAnimationAsset* AnimAsset = LoadObject<UAnimationAsset>(nullptr, TEXT("AnimSequence'/Game/Book/Animations/WarriorRun.WarriorRun'"));
 	//if (AnimAsset != nullptr)
 	//{
