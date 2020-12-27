@@ -2,9 +2,10 @@
 
 
 #include "ABCharacter.h"
+#include "ABAnimInstance.h"
 
 // Sets default values
-AABCharacter::AABCharacter()
+AABCharacter::AABCharacter() : IsAttacking{ false }
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -40,6 +41,7 @@ AABCharacter::AABCharacter()
 	ArmLengthSpeed = 3.0f;
 	ArmRotationSpeed = 10.0f;
 	GetCharacterMovement()->JumpZVelocity = 800.0f;
+
 }
 
 // Called when the game starts or when spawned
@@ -131,6 +133,15 @@ void AABCharacter::Tick(float DeltaTime)
 	}
 }
 
+void AABCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	ABAnim = Cast<UABAnimInstance>(GetMesh()->GetAnimInstance());
+	ABCHECK(nullptr != ABAnim);
+
+	ABAnim->OnMontageEnded.AddDynamic(this, &AABCharacter::OnAttackMontageEnded);
+}
+
 // Called to bind functionality to input
 void AABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -138,6 +149,7 @@ void AABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	PlayerInputComponent->BindAction(TEXT("ViewChange"), EInputEvent::IE_Pressed, this, &AABCharacter::ViewChange);
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Attack"), EInputEvent::IE_Pressed, this, &AABCharacter::Attack);
 
 	PlayerInputComponent->BindAxis(TEXT("UpDown"), this, &AABCharacter::UpDown);
 	PlayerInputComponent->BindAxis(TEXT("LeftRight"), this, &AABCharacter::LeftRight);
@@ -238,3 +250,18 @@ void AABCharacter::ViewChange()
 	}
 
 }
+
+void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterruted)
+{
+	ABCHECK(IsAttacking);
+	IsAttacking = false;
+}
+
+void AABCharacter::Attack()
+{
+	if (true == IsAttacking) return;
+
+	ABAnim->PlayAttackMontage();
+	IsAttacking = true;
+}
+

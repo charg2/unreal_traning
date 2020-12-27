@@ -19,7 +19,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override final;
 
-
 	enum class EControlMode
 	{
 		GTA, 
@@ -40,6 +39,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override final;
+	virtual void PostInitializeComponents() override final;
+
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override final;
@@ -58,4 +59,16 @@ private:
 	void Turn(float NewAxisValue);
 
 	void ViewChange();
+	void Attack();
+
+	UFUNCTION()
+	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterruted);
+	//FScriptDelegate OnAttackMontageEnded(UAnimMontage* Montage, bool bInterruted);
+	
+private:
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	bool IsAttacking;
+
+	UPROPERTY()
+	class UABAnimInstance* ABAnim;
 };
