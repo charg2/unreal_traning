@@ -32,12 +32,41 @@ void UABAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 }
 
+
 void UABAnimInstance::PlayAttackMontage()
 {
 	Montage_Play(AttackMontage, 1.0f);
 }
 
+void UABAnimInstance::JumpToAttackMontageSection(int32 NewSection)
+{
+	//Montage_Play(AttackMontage, 1.0f);
+
+	ABCHECK(Montage_IsPlaying(AttackMontage));
+	//ABLOG(Warning, TEXT("JumpToAttackMontageSection( %d )"), NewSection );
+
+	Montage_JumpToSection(GetAttackMontageSectionName(NewSection), AttackMontage);
+}
+
+
 void UABAnimInstance::AnimNotify_AttackHitCheck()
 {
 	ABLOG_S(Warning);
+	OnAttackHitCheck.Broadcast();
+}
+
+
+void UABAnimInstance::AnimNotify_NextAttackCheck()
+{
+	ABLOG_S(Warning);
+	OnNextAttackCheck.Broadcast();
+}
+
+FName UABAnimInstance::GetAttackMontageSectionName(int32 Section)
+{
+	ABCHECK(FMath::IsWithinInclusive<int32>(Section, 1, 4), NAME_None);
+
+	//ABLOG(Warning, TEXT("Attack%d"), Section );
+
+	return FName(*FString::Printf(TEXT("Attack%d"), Section));
 }

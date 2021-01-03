@@ -5,7 +5,7 @@
 #include "ABAnimInstance.h"
 
 // Sets default values
-AABCharacter::AABCharacter() : IsAttacking{ false }
+AABCharacter::AABCharacter() : IsAttacking{ false }, MaxCombo{4}
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -42,6 +42,8 @@ AABCharacter::AABCharacter() : IsAttacking{ false }
 	ArmRotationSpeed = 10.0f;
 	GetCharacterMovement()->JumpZVelocity = 800.0f;
 
+
+	AttackEndComboState();
 }
 
 // Called when the game starts or when spawned
@@ -140,6 +142,19 @@ void AABCharacter::PostInitializeComponents()
 	ABCHECK(nullptr != ABAnim);
 
 	ABAnim->OnMontageEnded.AddDynamic(this, &AABCharacter::OnAttackMontageEnded);
+
+	ABAnim->OnNextAttackCheck.AddLambda([this]() -> void 
+										{
+											ABLOG(Warning, TEXT("OnNextAttackCheck"));
+											CanNextCombo = false;
+
+											if (true == IsComboInputOn)
+											{
+												AttackStartComboState();
+												ABAnim->JumpToAttackMontageSection(CurrentCombo);
+											}
+										});
+
 }
 
 // Called to bind functionality to input
@@ -254,14 +269,44 @@ void AABCharacter::ViewChange()
 void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterruted)
 {
 	ABCHECK(IsAttacking);
+	ABCHECK(CurrentCombo > 0);
+
 	IsAttacking = false;
+	AttackEndComboState();
 }
 
 void AABCharacter::Attack()
 {
-	if (true == IsAttacking) return;
-
-	ABAnim->PlayAttackMontage();
-	IsAttacking = true;
+	if (true == IsAttacking)
+	{
+		ABCHECK(FMath::IsWithinInclusive<int32>(CurrentCombo, 1, MaxCombo));
+		if (true == CanNextCombo)
+		{
+			IsComboInputOn = true;
+		}
+	}
+	else
+	{
+		ABCHECK(CurrentCombo == 0);
+		AttackStartComboState();
+		ABAnim->PlayAttackMontage();
+		ABAnim->JumpToAttackMontageSection(CurrentCombo);
+		IsAttacking = true;
+	}
 }
 
+void AABCharacter::AttackStartComboState()
+{
+	CanNextCombo = true;
+	IsComboInputOn = false;
+	ABCHECK(FMath::IsWithinInclusive<int32>(CurrentCombo, 0, MaxCombo - 1));
+	CurrentCombo = FMath::Clamp<int32>(CurrentCombo + 1, 1, MaxCombo);
+}
+
+
+void AABCharacter::AttackEndComboState()
+{
+	IsComboInputOn = false;
+	CanNextCombo = false;
+	CurrentCombo = 0;
+}
